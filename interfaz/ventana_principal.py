@@ -4,27 +4,27 @@ from interfaz.pestana_simulacion import crear_pestana_simulacion
 from interfaz.pestana_caracteristicas import crear_pestana_caracteristicas
 
 def crear_ventana():
-    root = tk.Tk()
-    root.title("Simulador de Cruce Genético 🧬")
-    root.geometry("950x700")
-    root.config(bg="#18122B")
+    ventana = tk.Tk()
+    ventana.title("Simulador Genético de Animales 🧬")
+    ventana.geometry("850x600")
+    ventana.configure(bg="#DDE6ED")
 
-    style = ttk.Style()
-    style.theme_use("clam")
+    titulo = tk.Label(
+        ventana,
+        text="Simulador de Cruces Genéticos",
+        font=("Helvetica", 20, "bold"),
+        bg="#DDE6ED",
+        fg="#27374D"
+    )
+    titulo.pack(pady=15)
 
-    notebook = ttk.Notebook(root)
-    notebook.pack(expand=True, fill="both")
+    frame = tk.Frame(ventana, bg="#DDE6ED")
+    frame.pack(pady=10)
 
-    # Crear pestañas y agregarlas al notebook
-    tab_simulacion, actualizar_caracteristicas = crear_pestana_simulacion(notebook)
-    tab_caracteristicas, label_info = crear_pestana_caracteristicas(notebook)
+    notebook = ttk.Notebook(frame)
+    notebook.pack()
 
-    notebook.add(tab_simulacion, text="🧬 Simulación")
-    notebook.add(tab_caracteristicas, text="📖 Características")
+    crear_pestana_simulacion(notebook)
+    crear_pestana_caracteristicas(notebook)
 
-    # Vincular funciones entre pestañas
-    actualizar_caracteristicas.set_label(label_info)
-    actualizar_caracteristicas.set_notebook(notebook)
-    actualizar_caracteristicas.set_tab_caracteristicas(tab_caracteristicas)
-
-    root.mainloop()
+    ventana.mainloop()

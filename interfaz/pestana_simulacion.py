@@ -1,106 +1,138 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import random
 from PIL import Image, ImageTk
+from io import BytesIO
+
+# Si usas stable diffusion localmente:
 from diffusers import StableDiffusionPipeline
 import torch
-import os
-from data.animales import todos
-from data.caracteristicas import caracteristicas
-import random
 
-class ActualizadorCaracteristicas:
-    def __init__(self):
-        self.label = None
-        self.notebook = None
-        self.tab_caracteristicas = None
+from data.animales import terrestres, aereos, acuaticos
+from data.caracteristicas import rasgos, mutaciones
 
-    def set_label(self, label):
-        self.label = label
+# ======================================
+# CARGAR MODELO DE STABLE DIFFUSION
+# ======================================
+print("Cargando modelo de Stable Diffusion... esto puede tardar un poco.")
 
-    def set_notebook(self, notebook):
-        self.notebook = notebook
+# Elegir dtype según dispositivo (evita usar float16 en CPU)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+torch_dtype = torch.float16 if device == "cuda" else torch.float32
 
-    def set_tab_caracteristicas(self, tab):
-        self.tab_caracteristicas = tab
-
-    def actualizar(self, animal1, animal2):
-        if not self.label: return
-        texto1 = caracteristicas.get(animal1, "Sin información disponible.")
-        texto2 = caracteristicas.get(animal2, "Sin información disponible.")
-        mezcla = random.choice([
-            "combina la fuerza y la inteligencia de ambos animales.",
-            "posee habilidades únicas que lo hacen sorprendente.",
-            "tiene rasgos equilibrados y adaptativos.",
-            "es una mezcla perfecta de instinto y belleza."
-        ])
-        hibrido = f"El híbrido entre {animal1} y {animal2} {mezcla}"
-
-        texto_final = (
-            f"🐾 {animal1}: {texto1}\n\n"
-            f"🐾 {animal2}: {texto2}\n\n"
-            f"🌟 Híbrido: {hibrido}"
-        )
-
-        self.label.config(text=texto_final)
-        self.notebook.select(self.tab_caracteristicas)
-
-def crear_pestana_simulacion(notebook):
-    tab = tk.Frame(notebook, bg="#18122B")
-    actualizador = ActualizadorCaracteristicas()
-
-    # Modelo de difusión
-    print("Cargando modelo... (puede tardar unos minutos la primera vez)")
+try:
     pipe = StableDiffusionPipeline.from_pretrained(
         "runwayml/stable-diffusion-v1-5",
-        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32
+        torch_dtype=torch_dtype
     )
-    device = "cuda" if torch.cuda.is_available() else "cpu"
     pipe = pipe.to(device)
-    print("Modelo cargado correctamente ✅")
+    print(f"Modelo cargado correctamente en {device} ✅")
+except Exception as e:
+    # Si falla la carga del modelo, dejamos pipe = None y se mostrará un error al intentar generar la imagen
+    pipe = None
+    print("No se pudo cargar el modelo de Stable Diffusion:", e)
 
-    def generar_imagen():
-        animal1 = combo1.get()
-        animal2 = combo2.get()
+# ======================================
+# FUNCIÓN PRINCIPAL
+# ======================================
+def crear_pestana_simulacion(notebook):
+    frame = ttk.Frame(notebook)
+    notebook.add(frame, text="Cruce Genético")
+
+    tk.Label(frame, text="Selecciona los animales para el cruce:", font=("Helvetica", 12, "bold")).pack(pady=10)
+
+    todos = terrestres + aereos + acuaticos
+
+    tk.Label(frame, text="Padre 1:", font=("Helvetica", 11)).pack()
+    combo_padre1 = ttk.Combobox(frame, width=40, values=todos)
+    combo_padre1.pack(pady=5)
+
+    tk.Label(frame, text="Padre 2:", font=("Helvetica", 11)).pack()
+    combo_padre2 = ttk.Combobox(frame, width=40, values=todos)
+    combo_padre2.pack(pady=5)
+
+    # Cuadro de texto
+    resultado_text = tk.Text(frame, width=90, height=10, wrap="word", bg="#F8F9FA", fg="#000", font=("Courier", 10))
+    resultado_text.pack(pady=10)
+
+    # Etiqueta para imagen
+    lbl_imagen = tk.Label(frame, bg="#DDE6ED")
+    lbl_imagen.pack(pady=10)
+
+    # Función para realizar el cruce genético
+    def realizar_cruce():
+        animal1 = combo_padre1.get()
+        animal2 = combo_padre2.get()
+
         if not animal1 or not animal2:
-            messagebox.showwarning("Faltan datos", "Selecciona los dos animales.")
+            messagebox.showwarning("Selección incompleta", "Debes elegir dos animales para realizar el cruce.")
             return
 
-        prompt = f"Un híbrido de cuerpo entero entre un {animal1} y un {animal2}, estilo digital realista y detallado."
-        messagebox.showinfo("Generando", "Creando la imagen...")
+        rasgo1 = random.choice(rasgos)
+        rasgo2 = random.choice(rasgos)
+        mutacion = random.choice(mutaciones)
 
-        image = pipe(prompt, num_inference_steps=30).images[0]
+        prompt = (
+            f"Ilustración científica 2D de un híbrido entre un {animal1} y un {animal2}, "
+            f"representado con proporciones anatómicas coherentes y estilo naturalista. "
+            f"El entorno combina los hábitats típicos de ambos animales, con iluminación suave y fondo realista. "
+            f"El híbrido presenta rasgos combinados de {animal1} y {animal2}, "
+            f"sin deformidades, sin duplicaciones, sin errores anatómicos. "
+            f"Estilo de ilustración biológica profesional, textura detallada, colores naturales."
+        )
 
-        os.makedirs("assets", exist_ok=True)
-        ruta_img = f"assets/{animal1}_{animal2}_hibrido.png"
-        image.save(ruta_img)
+        resultado = f"""
+Resultado del cruce genético:
+---------------------------------
+Padre 1: {animal1}
+Padre 2: {animal2}
 
-        mostrar_imagen(ruta_img)
-        actualizador.actualizar(animal1, animal2)
+Rasgos heredados:
+- De {animal1}: {rasgo1}
+- De {animal2}: {rasgo2}
 
-    def mostrar_imagen(path):
-        img = Image.open(path)
-        img = img.resize((400, 400))
-        img_tk = ImageTk.PhotoImage(img)
-        label_imagen.config(image=img_tk)
-        label_imagen.image = img_tk
+Mutación: {mutacion if mutacion else 'No presenta mutaciones detectables.'}
 
-    tk.Label(tab, text="Selecciona los animales para el cruce 🧬",
-             font=("Arial", 18), bg="#18122B", fg="white").pack(pady=20)
+🧠 Prompt IA usado:
+{prompt}
+"""
 
-    frame_select = tk.Frame(tab, bg="#18122B")
-    frame_select.pack(pady=10)
+        resultado_text.delete("1.0", tk.END)
+        resultado_text.insert(tk.END, resultado.strip())
 
-    combo1 = ttk.Combobox(frame_select, values=todos, width=25, font=("Arial", 12))
-    combo1.grid(row=0, column=0, padx=20)
-    combo2 = ttk.Combobox(frame_select, values=todos, width=25, font=("Arial", 12))
-    combo2.grid(row=0, column=1, padx=20)
+        # Generar imagen con Stable Diffusion (si el modelo está cargado)
+        if pipe is None:
+            messagebox.showerror("Modelo no disponible", "El modelo de Stable Diffusion no está cargado. Revisa la consola.")
+            return
 
-    btn = tk.Button(tab, text="🔬 Generar Cruce",
-                    font=("Arial", 14), bg="#635985", fg="white",
-                    command=generar_imagen)
-    btn.pack(pady=30)
+        try:
+            resultado_text.insert(tk.END, "\n\nGenerando imagen...")
+            # actualizar solo el frame para reflejar el texto "Generando imagen..."
+            frame.update()
 
-    label_imagen = tk.Label(tab, bg="#18122B")
-    label_imagen.pack(pady=10)
+            # generar imagen (esto puede tardar)
+            sd_output = pipe(prompt)
+            image = sd_output.images[0]
+            image = image.resize((512, 512))  # redimensiona
 
-    return tab, actualizador
+            img_tk = ImageTk.PhotoImage(image)
+
+            # actualizar label con la imagen (guardar referencia para evitar garbage collector)
+            lbl_imagen.config(image=img_tk)
+            lbl_imagen.image = img_tk
+        except Exception as e:
+            messagebox.showerror("Error al generar imagen", str(e))
+
+    # Botón
+    tk.Button(
+        frame,
+        text="🔬 Realizar Cruce y Generar Imagen",
+        command=realizar_cruce,
+        bg="#526D82",
+        fg="white",
+        font=("Helvetica", 12, "bold"),
+        relief="flat",
+        padx=10, pady=5
+    ).pack(pady=15)
+
+    return frame

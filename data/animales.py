@@ -1,5 +1,16 @@
-terrestres = ["León", "Tigre", "Elefante", "Lobo", "Caballo", "Gato", "Perro", "Jirafa", "Cebra", "Oso"]
-acuaticos = ["Tiburón", "Delfín", "Pulpo", "Calamar", "Ballena", "Medusa", "Caballito de mar", "Foca", "Manta raya", "Pez payaso"]
-aereos = ["Águila", "Halcon", "Murciélago", "Búho", "Loro", "Paloma", "Gaviota", "Flamenco", "Cuervo", "Pato"]
+# Contiene las listas de animales según su hábitat
 
-todos = terrestres + acuaticos + aereos
+terrestres = [
+    "León", "Tigre", "Elefante", "Caballo", "Lobo",
+    "Perro", "Gato", "Jirafa", "Rinoceronte", "Oso"
+]
+
+aereos = [
+    "Águila", "Halcón", "Murciélago", "Colibrí", "Búho",
+    "Pato", "Gaviota", "Loro", "Golondrina", "Cuervo"
+]
+
+acuaticos = [
+    "Tiburón", "Delfín", "Pulpo", "Calamar", "Pez Payaso",
+    "Ballena", "Foca", "Morsa", "Medusa", "Estrella de mar"
+]

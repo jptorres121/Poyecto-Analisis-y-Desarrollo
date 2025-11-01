@@ -1,15 +1,17 @@
 import tkinter as tk
+from tkinter import ttk
+from data.caracteristicas import rasgos, mutaciones
 
 def crear_pestana_caracteristicas(notebook):
-    tab = tk.Frame(notebook, bg="#18122B")
+    frame = ttk.Frame(notebook)
+    notebook.add(frame, text="Características")
 
-    tk.Label(tab, text="Características del cruce generado",
-             font=("Arial", 18), bg="#18122B", fg="#FFFFFF").pack(pady=20)
+    tk.Label(frame, text="Rasgos Genéticos Disponibles", font=("Helvetica", 12, "bold")).pack(pady=10)
+    for r in rasgos:
+        tk.Label(frame, text=f"• {r}", font=("Helvetica", 10)).pack(anchor="w", padx=20)
 
-    label_info = tk.Label(tab,
-                          text="Aquí aparecerán las descripciones del híbrido una vez generado.",
-                          font=("Arial", 13), bg="#18122B", fg="white",
-                          justify="left", wraplength=800)
-    label_info.pack(pady=40)
+    tk.Label(frame, text="\nMutaciones Posibles", font=("Helvetica", 12, "bold")).pack(pady=10)
+    for m in mutaciones:
+        tk.Label(frame, text=f"• {m if m else 'Sin mutación'}", font=("Helvetica", 10)).pack(anchor="w", padx=20)
 
-    return tab, label_info
+    return frame
