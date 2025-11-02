@@ -93,7 +93,7 @@ Rasgos heredados:
 
 Mutación: {mutacion if mutacion else 'No presenta mutaciones detectables.'}
 
-🧠 Prompt IA usado:
+🧠Prompt IA usado:
 {prompt}
 """
 
@@ -126,7 +126,7 @@ Mutación: {mutacion if mutacion else 'No presenta mutaciones detectables.'}
     # Botón
     tk.Button(
         frame,
-        text="🔬 Realizar Cruce y Generar Imagen",
+        text="Realizar Cruce y Generar Imagen",
         command=realizar_cruce,
         bg="#526D82",
         fg="white",
